@@ -1,6 +1,5 @@
 module Main exposing (Model, Msg(..), main)
 
-import Basics exposing (remainderBy)
 import Browser
 import Html exposing (Html, button, div, h1, input, text)
 import Html.Attributes exposing (placeholder, value)
@@ -34,7 +33,7 @@ type TimerStatus
 
 
 type alias Timer =
-    { inputSeconds : String
+    { seconds : String
     , name : String
     , status : TimerStatus
     }
@@ -58,7 +57,7 @@ init _ =
 type Msg
     = Tick Time.Posix
     | Name String
-    | AdjustTime String
+    | Seconds String
     | StartTimer
     | StopTimer
     | ResetTimer
@@ -96,20 +95,20 @@ update msg model =
             , Cmd.none
             )
 
-        AdjustTime inputSeconds ->
-            ( { model | inputSeconds = inputSeconds }
+        Seconds seconds ->
+            ( { model | seconds = seconds }
             , Cmd.none
             )
 
         StartTimer ->
             case model.status of
                 NotStarted ->
-                    case String.toInt model.inputSeconds of
+                    case String.toInt model.seconds of
                         Nothing ->
                             ( model, Cmd.none )
 
                         Just seconds ->
-                            ( { model | inputSeconds = "", status = Ticking seconds }
+                            ( { model | seconds = "", status = Ticking seconds }
                             , Cmd.none
                             )
 
@@ -132,7 +131,7 @@ update msg model =
                     ( model, Cmd.none )
 
         ResetTimer ->
-            ( { model | inputSeconds = "", status = NotStarted }
+            ( { model | seconds = "", status = NotStarted }
             , Cmd.none
             )
 
@@ -161,13 +160,13 @@ type alias TimeRemaining =
 parseRemaining : Int -> TimeRemaining
 parseRemaining secondsRemaining =
     { days =
-        floor (toFloat secondsRemaining / (24 * 3600))
+        toFloat secondsRemaining / (24 * 3600) |> floor
     , hours =
-        floor (toFloat (remainderBy (24 * 3600) secondsRemaining) / 3600)
+        toFloat (modBy (24 * 3600) secondsRemaining) / 3600 |> floor
     , minutes =
-        floor (toFloat (remainderBy 3600 secondsRemaining) / 60)
+        toFloat (modBy 3600 secondsRemaining) / 60 |> floor
     , seconds =
-        remainderBy 60 secondsRemaining
+        modBy 60 secondsRemaining
     }
 
 
@@ -207,7 +206,7 @@ view model =
             NotStarted ->
                 div []
                     [ button [ onClick StartTimer ] [ text "Start" ]
-                    , input [ placeholder "Seconds", value model.inputSeconds, onInput AdjustTime ] []
+                    , input [ placeholder "Seconds", value model.seconds, onInput Seconds ] []
                     ]
 
             Ticking _ ->
