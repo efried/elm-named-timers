@@ -26,22 +26,27 @@ main =
 -- MODEL
 
 
-type Timer
+type TimerStatus
     = NotStarted
     | Ticking Int
     | Stopped Int
     | Complete
 
 
-type alias Model =
-    { input : String
-    , timer : Timer
+type alias Timer =
+    { inputSeconds : String
+    , name : String
+    , status : TimerStatus
     }
+
+
+type alias Model =
+    Timer
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model "" NotStarted
+    ( Timer "" "" NotStarted
     , Cmd.none
     )
 
@@ -52,6 +57,7 @@ init _ =
 
 type Msg
     = Tick Time.Posix
+    | Name String
     | AdjustTime String
     | StartTimer
     | StopTimer
@@ -62,18 +68,18 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick _ ->
-            case model.timer of
+            case model.status of
                 NotStarted ->
                     ( model, Cmd.none )
 
                 Ticking secondsRemaining ->
                     if secondsRemaining - 1 <= 0 then
-                        ( { model | timer = Complete }
+                        ( { model | status = Complete }
                         , Cmd.none
                         )
 
                     else
-                        ( { model | timer = Ticking (secondsRemaining - 1) }
+                        ( { model | status = Ticking (secondsRemaining - 1) }
                         , Cmd.none
                         )
 
@@ -85,25 +91,30 @@ update msg model =
                 Complete ->
                     ( model, Cmd.none )
 
-        AdjustTime newInput ->
-            ( { model | input = newInput }
+        Name name ->
+            ( { model | name = name }
+            , Cmd.none
+            )
+
+        AdjustTime inputSeconds ->
+            ( { model | inputSeconds = inputSeconds }
             , Cmd.none
             )
 
         StartTimer ->
-            case model.timer of
+            case model.status of
                 NotStarted ->
-                    case String.toInt model.input of
+                    case String.toInt model.inputSeconds of
                         Nothing ->
                             ( model, Cmd.none )
 
                         Just seconds ->
-                            ( { model | input = "", timer = Ticking seconds }
+                            ( { model | inputSeconds = "", status = Ticking seconds }
                             , Cmd.none
                             )
 
                 Stopped seconds ->
-                    ( { model | timer = Ticking seconds }
+                    ( { model | status = Ticking seconds }
                     , Cmd.none
                     )
 
@@ -111,9 +122,9 @@ update msg model =
                     ( model, Cmd.none )
 
         StopTimer ->
-            case model.timer of
+            case model.status of
                 Ticking secondsRemaining ->
-                    ( { model | timer = Stopped secondsRemaining }
+                    ( { model | status = Stopped secondsRemaining }
                     , Cmd.none
                     )
 
@@ -121,7 +132,7 @@ update msg model =
                     ( model, Cmd.none )
 
         ResetTimer ->
-            ( Model "" NotStarted
+            ( { model | inputSeconds = "", status = NotStarted }
             , Cmd.none
             )
 
@@ -174,7 +185,7 @@ toString timeRemaining =
 
 timerStatusString : Timer -> String
 timerStatusString timer =
-    case timer of
+    case timer.status of
         NotStarted ->
             ""
 
@@ -191,11 +202,12 @@ timerStatusString timer =
 view : Model -> Html Msg
 view model =
     div []
-        [ case model.timer of
+        [ input [ placeholder "Name", value model.name, onInput Name ] []
+        , case model.status of
             NotStarted ->
                 div []
                     [ button [ onClick StartTimer ] [ text "Start" ]
-                    , input [ placeholder "Seconds", value model.input, onInput AdjustTime ] []
+                    , input [ placeholder "Seconds", value model.inputSeconds, onInput AdjustTime ] []
                     ]
 
             Ticking _ ->
@@ -206,11 +218,11 @@ view model =
 
             _ ->
                 text ""
-        , case model.timer of
+        , case model.status of
             NotStarted ->
                 text ""
 
             _ ->
                 button [ onClick ResetTimer ] [ text "Reset" ]
-        , h1 [] [ text (timerStatusString model.timer) ]
+        , h1 [] [ text (timerStatusString model) ]
         ]
