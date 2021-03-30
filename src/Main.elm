@@ -173,13 +173,13 @@ parseRemaining secondsRemaining =
 toString : TimeRemaining -> String
 toString timeRemaining =
     "Days: "
-        ++ String.fromInt timeRemaining.days
+        ++ (String.fromInt timeRemaining.days |> String.padLeft 2 '0')
         ++ ", Hours: "
-        ++ String.fromInt timeRemaining.hours
+        ++ (String.fromInt timeRemaining.hours |> String.padLeft 2 '0')
         ++ ", Minutes: "
-        ++ String.fromInt timeRemaining.minutes
+        ++ (String.fromInt timeRemaining.minutes |> String.padLeft 2 '0')
         ++ ", Seconds: "
-        ++ String.fromInt timeRemaining.seconds
+        ++ (String.fromInt timeRemaining.seconds |> String.padLeft 2 '0')
 
 
 timerStatusString : Timer -> String
