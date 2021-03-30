@@ -2,7 +2,7 @@ module Main exposing (Model, Msg(..), main)
 
 import Browser
 import Html exposing (Html, button, div, h1, input, text)
-import Html.Attributes exposing (placeholder, value)
+import Html.Attributes exposing (placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Time
 
@@ -172,13 +172,12 @@ parseRemaining secondsRemaining =
 
 toString : TimeRemaining -> String
 toString timeRemaining =
-    "Days: "
-        ++ (String.fromInt timeRemaining.days |> String.padLeft 2 '0')
-        ++ ", Hours: "
+    (String.fromInt timeRemaining.days |> String.padLeft 2 '0')
+        ++ ":"
         ++ (String.fromInt timeRemaining.hours |> String.padLeft 2 '0')
-        ++ ", Minutes: "
+        ++ ":"
         ++ (String.fromInt timeRemaining.minutes |> String.padLeft 2 '0')
-        ++ ", Seconds: "
+        ++ ":"
         ++ (String.fromInt timeRemaining.seconds |> String.padLeft 2 '0')
 
 
@@ -198,11 +197,19 @@ timerStatusString timer =
             "Done"
 
 
-view : Model -> Html Msg
-view model =
-    div []
-        [ input [ placeholder "Name", value model.name, onInput Name ] []
-        , case model.status of
+viewTimer : Timer -> Html Msg
+viewTimer timer =
+    div
+        [ style "background-color" "rgb(202,227,219)"
+        , style "border" "6px dashed #ccc"
+        , style "border-radius" "20px"
+        , style "width" "480px"
+        , style "height" "100px"
+        , style "margin" "100px auto"
+        , style "padding" "20px"
+        ]
+        [ input [ placeholder "Name", value timer.name, onInput EnteredName ] []
+        , case timer.status of
             NotStarted ->
                 div []
                     [ button [ onClick TimerStarted ] [ text "Start" ]
@@ -217,11 +224,16 @@ view model =
 
             _ ->
                 text ""
-        , case model.status of
+        , case timer.status of
             NotStarted ->
                 text ""
 
             _ ->
-        , h1 [] [ text (timerStatusString model) ]
                 button [ onClick TimerReset ] [ text "Reset" ]
+        , h1 [] [ text (timerStatusString timer) ]
         ]
+
+
+view : Model -> Html Msg
+view model =
+    viewTimer model
