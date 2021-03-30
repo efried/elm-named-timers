@@ -24,21 +24,19 @@ main =
 -- MODEL
 
 
-type TimerStatus
-    = NotStarted
-    | Ticking
+type Timer
+    = NotStarted Int
+    | Ticking Int
     | Complete
 
 
 type alias Model =
-    { timeRemaining : Int
-    , status : TimerStatus
-    }
+    { timer : Timer }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model 123456 NotStarted
+    ( { timer = NotStarted 500 }
     , Cmd.none
     )
 
@@ -55,20 +53,20 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick _ ->
-            case model.status of
-                NotStarted ->
-                    ( { model | timeRemaining = model.timeRemaining - 1, status = Ticking }
+            case model.timer of
+                NotStarted secondsRemaining ->
+                    ( { model | timer = Ticking (secondsRemaining - 1) }
                     , Cmd.none
                     )
 
-                Ticking ->
-                    if model.timeRemaining - 1 /= 0 then
-                        ( { model | timeRemaining = model.timeRemaining - 1 }
+                Ticking secondsRemaining ->
+                    if secondsRemaining - 1 == 0 then
+                        ( { model | timer = Complete }
                         , Cmd.none
                         )
 
                     else
-                        ( { model | timeRemaining = 0, status = Complete }
+                        ( { model | timer = Ticking (secondsRemaining - 1) }
                         , Cmd.none
                         )
 
@@ -126,9 +124,12 @@ toString timeRemaining =
 
 view : Model -> Html Msg
 view model =
-    case model.status of
+    case model.timer of
+        NotStarted secondsRemaining ->
+            h1 [] [ text (parseRemaining secondsRemaining |> toString) ]
+
+        Ticking secondsRemaining ->
+            h1 [] [ text (parseRemaining secondsRemaining |> toString) ]
+
         Complete ->
             h1 [] [ text "Done" ]
-
-        _ ->
-            h1 [] [ text (parseRemaining model.timeRemaining |> toString) ]
