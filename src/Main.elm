@@ -56,11 +56,11 @@ init _ =
 
 type Msg
     = Tick Time.Posix
-    | Name String
-    | Seconds String
-    | StartTimer
-    | StopTimer
-    | ResetTimer
+    | EnteredName String
+    | EnteredSeconds String
+    | TimerStarted
+    | TimerStopped
+    | TimerReset
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -90,17 +90,17 @@ update msg model =
                 Complete ->
                     ( model, Cmd.none )
 
-        Name name ->
+        EnteredName name ->
             ( { model | name = name }
             , Cmd.none
             )
 
-        Seconds seconds ->
+        EnteredSeconds seconds ->
             ( { model | seconds = seconds }
             , Cmd.none
             )
 
-        StartTimer ->
+        TimerStarted ->
             case model.status of
                 NotStarted ->
                     case String.toInt model.seconds of
@@ -120,7 +120,7 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        StopTimer ->
+        TimerStopped ->
             case model.status of
                 Ticking secondsRemaining ->
                     ( { model | status = Stopped secondsRemaining }
@@ -130,7 +130,7 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        ResetTimer ->
+        TimerReset ->
             ( { model | seconds = "", status = NotStarted }
             , Cmd.none
             )
@@ -205,15 +205,15 @@ view model =
         , case model.status of
             NotStarted ->
                 div []
-                    [ button [ onClick StartTimer ] [ text "Start" ]
-                    , input [ placeholder "Seconds", value model.seconds, onInput Seconds ] []
+                    [ button [ onClick TimerStarted ] [ text "Start" ]
+                    , input [ placeholder "Seconds", value timer.seconds, onInput EnteredSeconds ] []
                     ]
 
             Ticking _ ->
-                button [ onClick StopTimer ] [ text "Stop" ]
+                button [ onClick TimerStopped ] [ text "Stop" ]
 
             Stopped _ ->
-                button [ onClick StartTimer ] [ text "Resume" ]
+                button [ onClick TimerStarted ] [ text "Resume" ]
 
             _ ->
                 text ""
@@ -222,6 +222,6 @@ view model =
                 text ""
 
             _ ->
-                button [ onClick ResetTimer ] [ text "Reset" ]
         , h1 [] [ text (timerStatusString model) ]
+                button [ onClick TimerReset ] [ text "Reset" ]
         ]
