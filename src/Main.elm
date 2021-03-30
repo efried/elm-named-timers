@@ -2,7 +2,9 @@ module Main exposing (Model, Msg(..), init, main, subscriptions, update, view)
 
 import Basics exposing (remainderBy)
 import Browser
-import Html exposing (..)
+import Html exposing (Html, button, div, h1, input, text)
+import Html.Attributes exposing (placeholder, value)
+import Html.Events exposing (onClick, onInput)
 import Time
 
 
@@ -25,18 +27,20 @@ main =
 
 
 type Timer
-    = NotStarted Int
+    = NotStarted
     | Ticking Int
     | Complete
 
 
 type alias Model =
-    { timer : Timer }
+    { input : String
+    , timer : Timer
+    }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { timer = NotStarted 500 }
+    ( Model "" NotStarted
     , Cmd.none
     )
 
@@ -47,6 +51,8 @@ init _ =
 
 type Msg
     = Tick Time.Posix
+    | AdjustTime String
+    | StartTimer
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -54,13 +60,13 @@ update msg model =
     case msg of
         Tick _ ->
             case model.timer of
-                NotStarted secondsRemaining ->
-                    ( { model | timer = Ticking (secondsRemaining - 1) }
+                NotStarted ->
+                    ( model
                     , Cmd.none
                     )
 
                 Ticking secondsRemaining ->
-                    if secondsRemaining - 1 == 0 then
+                    if secondsRemaining - 1 <= 0 then
                         ( { model | timer = Complete }
                         , Cmd.none
                         )
@@ -72,6 +78,23 @@ update msg model =
 
                 Complete ->
                     ( model
+                    , Cmd.none
+                    )
+
+        AdjustTime newInput ->
+            ( { model | input = newInput }
+            , Cmd.none
+            )
+
+        StartTimer ->
+            case String.toInt model.input of
+                Nothing ->
+                    ( model
+                    , Cmd.none
+                    )
+
+                Just seconds ->
+                    ( { model | timer = Ticking seconds }
                     , Cmd.none
                     )
 
@@ -122,14 +145,25 @@ toString timeRemaining =
         ++ String.fromInt timeRemaining.seconds
 
 
-view : Model -> Html Msg
-view model =
-    case model.timer of
-        NotStarted secondsRemaining ->
-            h1 [] [ text (parseRemaining secondsRemaining |> toString) ]
+timerStatusString : Timer -> String
+timerStatusString timer =
+    case timer of
+        NotStarted ->
+            "Waiting..."
 
         Ticking secondsRemaining ->
-            h1 [] [ text (parseRemaining secondsRemaining |> toString) ]
+            parseRemaining secondsRemaining |> toString
 
         Complete ->
-            h1 [] [ text "Done" ]
+            "Done"
+
+
+view : Model -> Html Msg
+view model =
+    div []
+        [ div []
+            [ input [ placeholder "Seconds", value model.input, onInput AdjustTime ] []
+            , button [ onClick StartTimer ] [ text "Start" ]
+            ]
+        , h1 [] [ text (timerStatusString model.timer) ]
+        ]
