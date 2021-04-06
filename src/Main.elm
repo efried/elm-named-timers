@@ -229,8 +229,7 @@ subscriptions _ =
 
 
 type alias TimeRemaining =
-    { days : Int
-    , hours : Int
+    { hours : Int
     , minutes : Int
     , seconds : Int
     }
@@ -238,10 +237,8 @@ type alias TimeRemaining =
 
 parseRemaining : Int -> TimeRemaining
 parseRemaining secondsRemaining =
-    { days =
-        toFloat secondsRemaining / (24 * 3600) |> floor
-    , hours =
-        toFloat (modBy (24 * 3600) secondsRemaining) / 3600 |> floor
+    { hours =
+        toFloat secondsRemaining / (60 * 3600) |> floor
     , minutes =
         toFloat (modBy 3600 secondsRemaining) / 60 |> floor
     , seconds =
@@ -251,9 +248,7 @@ parseRemaining secondsRemaining =
 
 toString : TimeRemaining -> String
 toString timeRemaining =
-    (String.fromInt timeRemaining.days |> String.padLeft 2 '0')
-        ++ ":"
-        ++ (String.fromInt timeRemaining.hours |> String.padLeft 2 '0')
+    (String.fromInt timeRemaining.hours |> String.padLeft 2 '0')
         ++ ":"
         ++ (String.fromInt timeRemaining.minutes |> String.padLeft 2 '0')
         ++ ":"
