@@ -51,7 +51,7 @@ type alias ID =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { timers = [], nextID = 0 }
+    ( { timers = List.singleton ( 0, Timer "" "" NotStarted ), nextID = 1 }
     , Cmd.none
     )
 
