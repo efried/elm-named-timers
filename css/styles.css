@@ -1,0 +1,66 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-self: center;
+}
+
+.timer {
+    background-color: rgb(202,227,219);
+    border: 6px dashed #ccc;
+    border-radius: 20px;
+    width: 480px;
+    height: 100px;
+    margin: 50px auto;
+    padding: 20px;
+}
+
+.circle{
+    border: 1px solid #ccc;
+    width: 32px;
+    height: 32px;
+    border-radius: 100%;
+    position: relative;
+    align-self: center;
+    margin: 4px;
+    display: inline-block;
+    vertical-align: middle;
+    background: rgb(202,227,219);
+}
+.circle:hover{
+    background: #ccc;
+}
+.circle:active{
+    background: radial-gradient(#ccc, #fff);
+}
+.circle:before,
+.circle:after{
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+.circle.plus:before,
+.circle.plus:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: black;
+}
+.circle.plus:before{
+    width: 2px;
+    margin: 2px auto;
+}
+.circle.plus:after{
+    margin: auto 2px;
+    height: 2px;
+}
+.circle.minus:before{
+    background: black;
+    margin: auto 3px;
+    height: 2px;
+}

@@ -2,7 +2,7 @@ module Main exposing (Model, Msg(..), main)
 
 import Browser
 import Html exposing (Html, button, div, h1, input, text)
-import Html.Attributes exposing (placeholder, style, value)
+import Html.Attributes exposing (class, placeholder, title, value)
 import Html.Events exposing (onClick, onInput)
 import Time
 
@@ -274,13 +274,7 @@ timerStatusString timer =
 viewTimer : ( ID, Timer ) -> Html Msg
 viewTimer ( id, timer ) =
     div
-        [ style "background-color" "rgb(202,227,219)"
-        , style "border" "6px dashed #ccc"
-        , style "border-radius" "20px"
-        , style "width" "480px"
-        , style "height" "100px"
-        , style "margin" "100px auto"
-        , style "padding" "20px"
+        [ class "timer"
         ]
         [ button [ onClick (RemoveTimer id) ] [ text "Delete Timer" ]
         , input [ placeholder "Name", value timer.name, onInput (EnteredName id) ] []
@@ -311,8 +305,13 @@ viewTimer ( id, timer ) =
 
 view : Model -> Html Msg
 view model =
-    let
-        insert =
-            button [ onClick InsertTimer ] [ text "Add" ]
-    in
-    div [] (insert :: List.map viewTimer model.timers)
+    div [ class "container" ]
+        [ div [ class "timers" ] (List.map viewTimer model.timers)
+        , button
+            [ class "circle"
+            , class "plus"
+            , title "Add another timer"
+            , onClick InsertTimer
+            ]
+            []
+        ]
