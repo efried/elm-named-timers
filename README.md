@@ -1,5 +1,5 @@
 # elm-named-timers
-Create multiple timeres with names to help keep track.
+Create multiple timers with names to help keep track.
 ![Timers preview](./static/images/timers_preview.png)
 ___
 ### Getting Started
