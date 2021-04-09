@@ -156,7 +156,7 @@ update msg model =
 
                                     Just seconds ->
                                         ( timerID
-                                        , { timer | seconds = "", status = Ticking seconds }
+                                        , { timer | status = Ticking seconds }
                                         )
 
                             Stopped seconds ->
@@ -199,7 +199,7 @@ update msg model =
                 resetTimer ( timerID, timer ) =
                     if timerID == id then
                         ( timerID
-                        , { timer | seconds = "", status = NotStarted }
+                        , { timer | status = NotStarted }
                         )
 
                     else
