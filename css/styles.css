@@ -1,3 +1,7 @@
+body {
+    background-color: rgba(1, 23, 47, 0.9);
+}
+
 .container {
     display: flex;
     flex-direction: column;
@@ -5,17 +9,41 @@
 }
 
 .timer {
-    background-color: rgb(202,227,219);
-    border: 6px dashed #ccc;
+    background-color: rgb(130, 138, 149);
+    position: relative;
     border-radius: 20px;
-    width: 480px;
+    width: 600px;
     height: 100px;
     margin: 50px auto;
     padding: 20px;
 }
 
-.circle{
-    border: 1px solid #ccc;
+.border-bottom {
+    border: 0;
+    border-bottom: 2px solid rgb(21, 59, 80);
+    border-radius: 6px;
+    padding: 4px;
+}
+
+button {
+    padding: 4px;
+}
+
+.delete-timer {
+    position: absolute;
+    top: 19px;
+    right: 16px;
+}
+
+.countdown-clock {
+    color: white;
+    max-width: 100%;
+    margin: 10px 0px;
+    font-size: 58px;
+}
+
+.circle {
+    border: 1px solid rgb(21, 59, 80);
     width: 32px;
     height: 32px;
     border-radius: 100%;
@@ -24,16 +52,14 @@
     margin: 4px;
     display: inline-block;
     vertical-align: middle;
-    background: rgb(202,227,219);
+    background: rgb(130, 138, 149);
 }
-.circle:hover{
-    background: #ccc;
-}
-.circle:active{
-    background: radial-gradient(#ccc, #fff);
+.circle:hover {
+    background: rgb(21, 59, 80);
+    cursor: pointer;
 }
 .circle:before,
-.circle:after{
+.circle:after {
     content: '';
     position: absolute;
     top: 0;
@@ -49,18 +75,28 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: black;
+    background: white;
 }
-.circle.plus:before{
+.circle.plus:before {
     width: 2px;
     margin: 2px auto;
 }
-.circle.plus:after{
+.circle.plus:after {
     margin: auto 2px;
     height: 2px;
 }
-.circle.minus:before{
-    background: black;
+.circle.minus {
+    background-color: rgb(21, 59, 80);
+}
+.circle.small {
+    width: 22px;
+    height: 22px;
+}
+.circle.minus:hover {
+    background: rgba(230, 15, 15, 0.596);
+}
+.circle.minus:before {
+    background: white;
     margin: auto 3px;
     height: 2px;
 }

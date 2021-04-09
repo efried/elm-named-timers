@@ -274,32 +274,35 @@ timerStatusString timer =
 viewTimer : ( ID, Timer ) -> Html Msg
 viewTimer ( id, timer ) =
     div
-        [ class "timer"
-        ]
-        [ button [ onClick (RemoveTimer id) ] [ text "Delete Timer" ]
-        , input [ placeholder "Name", value timer.name, onInput (EnteredName id) ] []
-        , case timer.status of
-            NotStarted ->
-                div []
-                    [ button [ onClick (TimerStarted id) ] [ text "Start" ]
-                    , input [ placeholder "Seconds", value timer.seconds, onInput (EnteredSeconds id) ] []
-                    ]
+        [ class "timer" ]
+        [ div [ class "form" ]
+            [ input [ placeholder "Name", class "border-bottom", value timer.name, onInput (EnteredName id) ] []
+            , input [ placeholder "Seconds", class "border-bottom", value timer.seconds, onInput (EnteredSeconds id) ] []
+            , case timer.status of
+                NotStarted ->
+                    button [ onClick (TimerStarted id) ] [ text "Start" ]
 
-            Ticking _ ->
-                button [ onClick (TimerStopped id) ] [ text "Stop" ]
+                Ticking _ ->
+                    button [ onClick (TimerStopped id) ] [ text "Stop" ]
 
-            Stopped _ ->
-                button [ onClick (TimerStarted id) ] [ text "Resume" ]
+                Stopped _ ->
+                    button [ onClick (TimerStarted id) ] [ text "Resume" ]
 
-            _ ->
-                text ""
-        , case timer.status of
-            NotStarted ->
-                text ""
+                _ ->
+                    text ""
+            , case timer.status of
+                NotStarted ->
+                    text ""
 
-            _ ->
-                button [ onClick (TimerReset id) ] [ text "Reset" ]
-        , h1 [] [ text (timerStatusString timer) ]
+                _ ->
+                    button [ onClick (TimerReset id) ] [ text "Reset" ]
+            ]
+        , div
+            [ class "delete-timer"
+            , title "Delete timer"
+            ]
+            [ button [ class "circle", class "minus", class "small", onClick (RemoveTimer id) ] [] ]
+        , h1 [ class "countdown-clock" ] [ text (timerStatusString timer) ]
         ]
 
 
@@ -310,7 +313,7 @@ view model =
         , button
             [ class "circle"
             , class "plus"
-            , title "Add another timer"
+            , title "Add a timer"
             , onClick InsertTimer
             ]
             []
