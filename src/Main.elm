@@ -283,7 +283,7 @@ viewTimer ( id, timer ) =
                     button [ onClick (TimerStarted id) ] [ text "Start" ]
 
                 Ticking _ ->
-                    button [ onClick (TimerStopped id) ] [ text "Stop" ]
+                    button [ onClick (TimerStopped id) ] [ text "Pause" ]
 
                 Stopped _ ->
                     button [ onClick (TimerStarted id) ] [ text "Resume" ]
@@ -295,7 +295,7 @@ viewTimer ( id, timer ) =
                     text ""
 
                 _ ->
-                    button [ onClick (TimerReset id) ] [ text "Reset" ]
+                    button [ onClick (TimerReset id) ] [ text "Cancel" ]
             ]
         , div
             [ class "delete-timer"
