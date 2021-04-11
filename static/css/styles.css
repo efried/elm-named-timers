@@ -25,13 +25,28 @@ body {
     padding: 4px;
 }
 
+.form input, .form button {
+    margin-right: 4px;
+}
+
+.form button {
+    background-color: white;
+    border: 0;
+    border-radius: 6px;
+    border-bottom: 2px solid rgb(21, 59, 80);
+}
+
 button {
     padding: 4px;
 }
 
+button:active {
+    color: rgb(21, 59, 80);
+}
+
 .delete-timer {
     position: absolute;
-    top: 19px;
+    top: 18px;
     right: 16px;
 }
 
