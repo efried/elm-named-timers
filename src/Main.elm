@@ -1,8 +1,9 @@
 module Main exposing (Model, Msg(..), main)
 
 import Browser
+import Flip exposing (flip)
 import Html exposing (Html, button, div, h1, input, text)
-import Html.Attributes exposing (class, placeholder, title, value)
+import Html.Attributes exposing (class, classList, placeholder, title, value)
 import Html.Events exposing (onClick, onInput)
 import Time
 
@@ -255,6 +256,17 @@ toString timeRemaining =
         ++ (String.fromInt timeRemaining.seconds |> String.padLeft 2 '0')
 
 
+formatTimerName : String -> String
+formatTimerName name =
+    if String.length name > 15 then
+        name
+            |> String.left 15
+            |> flip String.append "..."
+
+    else
+        name
+
+
 timerStatusString : Timer -> String
 timerStatusString timer =
     case timer.status of
@@ -268,7 +280,44 @@ timerStatusString timer =
             parseRemaining secondsRemaining |> toString
 
         Complete ->
-            "Done"
+            timer.name |> formatTimerName |> flip String.append " Timer Complete"
+
+
+viewControls : ID -> TimerStatus -> Html Msg
+viewControls id status =
+    case status of
+        NotStarted ->
+            button [ onClick (TimerStarted id) ] [ text "Start" ]
+
+        Ticking _ ->
+            button [ onClick (TimerStopped id) ] [ text "Pause" ]
+
+        Stopped _ ->
+            button [ onClick (TimerStarted id) ] [ text "Resume" ]
+
+        _ ->
+            text ""
+
+
+viewResetButton : ID -> TimerStatus -> Html Msg
+viewResetButton id status =
+    case status of
+        NotStarted ->
+            text ""
+
+        _ ->
+            button [ onClick (TimerReset id) ] [ text "Reset" ]
+
+
+viewStatus : Timer -> Html Msg
+viewStatus timer =
+    h1
+        [ classList
+            [ ( "countdown-clock", True )
+            , ( "countdown-complete", timer.status == Complete )
+            ]
+        ]
+        [ text (timerStatusString timer) ]
 
 
 viewTimer : ( ID, Timer ) -> Html Msg
@@ -278,31 +327,15 @@ viewTimer ( id, timer ) =
         [ div [ class "form" ]
             [ input [ placeholder "Name", class "border-bottom", value timer.name, onInput (EnteredName id) ] []
             , input [ placeholder "Seconds", class "border-bottom", value timer.seconds, onInput (EnteredSeconds id) ] []
-            , case timer.status of
-                NotStarted ->
-                    button [ onClick (TimerStarted id) ] [ text "Start" ]
-
-                Ticking _ ->
-                    button [ onClick (TimerStopped id) ] [ text "Pause" ]
-
-                Stopped _ ->
-                    button [ onClick (TimerStarted id) ] [ text "Resume" ]
-
-                _ ->
-                    text ""
-            , case timer.status of
-                NotStarted ->
-                    text ""
-
-                _ ->
-                    button [ onClick (TimerReset id) ] [ text "Cancel" ]
+            , viewControls id timer.status
+            , viewResetButton id timer.status
             ]
         , div
             [ class "delete-timer"
             , title "Delete timer"
             ]
             [ button [ class "circle", class "minus", class "small", onClick (RemoveTimer id) ] [] ]
-        , h1 [ class "countdown-clock" ] [ text (timerStatusString timer) ]
+        , viewStatus timer
         ]
 
 

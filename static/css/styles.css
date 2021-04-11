@@ -57,6 +57,11 @@ button:active {
     font-size: 58px;
 }
 
+.countdown-complete {
+    font-size: 38px;
+    margin-top: 20px;
+}
+
 .circle {
     border: 1px solid rgb(21, 59, 80);
     width: 32px;
