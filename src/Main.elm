@@ -283,11 +283,16 @@ timerStatusString timer =
             timer.name |> formatTimerName |> flip String.append " Timer Complete"
 
 
-viewControls : ID -> TimerStatus -> Html Msg
-viewControls id status =
-    case status of
+viewControls : ID -> Timer -> Html Msg
+viewControls id timer =
+    case timer.status of
         NotStarted ->
-            button [ onClick (TimerStarted id) ] [ text "Start" ]
+            case String.toInt timer.seconds of
+                Nothing ->
+                    text ""
+
+                Just _ ->
+                    button [ onClick (TimerStarted id) ] [ text "Start" ]
 
         Ticking _ ->
             button [ onClick (TimerStopped id) ] [ text "Pause" ]
@@ -299,9 +304,9 @@ viewControls id status =
             text ""
 
 
-viewResetButton : ID -> TimerStatus -> Html Msg
-viewResetButton id status =
-    case status of
+viewResetButton : ID -> Timer -> Html Msg
+viewResetButton id timer =
+    case timer.status of
         NotStarted ->
             text ""
 
@@ -327,8 +332,8 @@ viewTimer ( id, timer ) =
         [ div [ class "form" ]
             [ input [ placeholder "Name", class "border-bottom", value timer.name, onInput (EnteredName id) ] []
             , input [ placeholder "Seconds", class "border-bottom", value timer.seconds, onInput (EnteredSeconds id) ] []
-            , viewControls id timer.status
-            , viewResetButton id timer.status
+            , viewControls id timer
+            , viewResetButton id timer
             ]
         , div
             [ class "delete-timer"
