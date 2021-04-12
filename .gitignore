@@ -16,6 +16,7 @@ node_modules/*
 # Elm
 elm-stuff
 elm.js
+dist
 
 # Logs
 logs
