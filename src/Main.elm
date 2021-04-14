@@ -289,7 +289,11 @@ viewStatus timer =
 viewTimer : ( ID, Timer ) -> Html Msg
 viewTimer ( id, timer ) =
     div
-        [ class "timer" ]
+        [ classList
+            [ ( "timer", True )
+            , ( "countdown-complete", timer.status == Complete )
+            ]
+        ]
         [ div [ class "form" ]
             [ input [ placeholder "Name", class "border-bottom", value timer.name, onInput (EnteredName id) ] []
             , input [ placeholder "Seconds", class "border-bottom", value timer.seconds, onInput (EnteredSeconds id) ] []
