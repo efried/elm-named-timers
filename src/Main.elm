@@ -1,11 +1,13 @@
 module Main exposing (Model, Msg(..), main)
 
 import Browser
+import Dict exposing (Dict)
 import Flip exposing (flip)
 import Html exposing (Html, button, div, h1, input, text)
 import Html.Attributes exposing (class, classList, placeholder, title, value)
 import Html.Events exposing (onClick, onInput)
 import Time
+import Util exposing (done)
 
 
 
@@ -41,7 +43,7 @@ type alias Timer =
 
 
 type alias Model =
-    { timers : List ( ID, Timer )
+    { timers : Dict ID Timer
     , nextID : Int
     }
 
@@ -52,9 +54,7 @@ type alias ID =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { timers = List.singleton ( 0, Timer "" "" NotStarted ), nextID = 1 }
-    , Cmd.none
-    )
+    done { timers = Dict.fromList [ ( 0, Timer "" "" NotStarted ) ], nextID = 1 }
 
 
 
@@ -72,148 +72,109 @@ type Msg
     | RemoveTimer ID
 
 
-
--- make multiple timers like this https://benbooth.dev/building-a-basic-ui-clone-of-instagram-using-elm-part-2
+mapTimer : Model -> ID -> (Timer -> Timer) -> Model
+mapTimer model id f =
+    { model | timers = model.timers |> Dict.update id (Maybe.map f) }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         InsertTimer ->
-            ( { model
-                | timers = model.timers ++ List.singleton ( model.nextID, Timer "" "" NotStarted )
-                , nextID = model.nextID + 1
-              }
-            , Cmd.none
-            )
+            done
+                { model
+                    | timers = model.timers |> Dict.insert model.nextID (Timer "" "" NotStarted)
+                    , nextID = model.nextID + 1
+                }
 
         Tick _ ->
             let
-                updateTimer ( id, timer ) =
-                    case timer.status of
-                        NotStarted ->
-                            ( id, timer )
+                updateTimer =
+                    \timer ->
+                        case timer.status of
+                            Ticking secondsRemaining ->
+                                if secondsRemaining - 1 <= 0 then
+                                    { timer | status = Complete }
 
-                        Ticking secondsRemaining ->
-                            if secondsRemaining - 1 <= 0 then
-                                ( id
-                                , { timer | status = Complete }
-                                )
+                                else
+                                    { timer | status = Ticking (secondsRemaining - 1) }
 
-                            else
-                                ( id
-                                , { timer | status = Ticking (secondsRemaining - 1) }
-                                )
+                            NotStarted ->
+                                timer
 
-                        Stopped _ ->
-                            ( id, timer )
+                            Stopped _ ->
+                                timer
 
-                        Complete ->
-                            ( id, timer )
+                            Complete ->
+                                timer
             in
-            ( { model | timers = List.map updateTimer model.timers }
-            , Cmd.none
-            )
+            done { model | timers = model.timers |> Dict.map (always updateTimer) }
 
         EnteredName id name ->
-            let
-                updateTimerName ( timerID, timer ) =
-                    if timerID == id then
-                        ( timerID
-                        , { timer | name = name }
-                        )
-
-                    else
-                        ( timerID, timer )
-            in
-            ( { model | timers = List.map updateTimerName model.timers }
-            , Cmd.none
-            )
+            done
+                (mapTimer model
+                    id
+                    (\timer ->
+                        { timer | name = name }
+                    )
+                )
 
         EnteredSeconds id seconds ->
-            let
-                updateTimerSeconds ( timerID, timer ) =
-                    if timerID == id then
-                        ( timerID
-                        , { timer | seconds = seconds }
-                        )
-
-                    else
-                        ( timerID, timer )
-            in
-            ( { model | timers = List.map updateTimerSeconds model.timers }
-            , Cmd.none
-            )
+            done
+                (mapTimer model
+                    id
+                    (\timer ->
+                        { timer | seconds = seconds }
+                    )
+                )
 
         TimerStarted id ->
-            let
-                startTimer ( timerID, timer ) =
-                    if timerID == id then
+            done
+                (mapTimer model
+                    id
+                    (\timer ->
                         case timer.status of
                             NotStarted ->
                                 case String.toInt timer.seconds of
                                     Nothing ->
-                                        ( timerID, timer )
+                                        timer
 
                                     Just seconds ->
-                                        ( timerID
-                                        , { timer | status = Ticking seconds }
-                                        )
+                                        { timer | status = Ticking seconds }
 
                             Stopped seconds ->
-                                ( timerID
-                                , { timer | status = Ticking seconds }
-                                )
+                                { timer | status = Ticking seconds }
 
                             _ ->
-                                ( timerID, timer )
-
-                    else
-                        ( timerID, timer )
-            in
-            ( { model | timers = List.map startTimer model.timers }
-            , Cmd.none
-            )
+                                timer
+                    )
+                )
 
         TimerStopped id ->
-            let
-                stopTimer ( timerID, timer ) =
-                    if timerID == id then
+            done
+                (mapTimer model
+                    id
+                    (\timer ->
                         case timer.status of
                             Ticking secondsRemaining ->
-                                ( timerID
-                                , { timer | status = Stopped secondsRemaining }
-                                )
+                                { timer | status = Stopped secondsRemaining }
 
                             _ ->
-                                ( timerID, timer )
-
-                    else
-                        ( timerID, timer )
-            in
-            ( { model | timers = List.map stopTimer model.timers }
-            , Cmd.none
-            )
+                                timer
+                    )
+                )
 
         TimerReset id ->
-            let
-                resetTimer ( timerID, timer ) =
-                    if timerID == id then
-                        ( timerID
-                        , { timer | status = NotStarted }
-                        )
-
-                    else
-                        ( timerID, timer )
-            in
-            ( { model | timers = List.map resetTimer model.timers }
-            , Cmd.none
-            )
+            done
+                (mapTimer model
+                    id
+                    (\timer ->
+                        { timer | status = NotStarted }
+                    )
+                )
 
         RemoveTimer id ->
-            ( { model | timers = List.filter (\( timerID, _ ) -> timerID /= id) model.timers }
-            , Cmd.none
-            )
+            done { model | timers = model.timers |> Dict.remove id }
 
 
 
@@ -249,11 +210,11 @@ parseRemaining secondsRemaining =
 
 toString : TimeRemaining -> String
 toString timeRemaining =
-    (String.fromInt timeRemaining.hours |> String.padLeft 2 '0')
-        ++ ":"
-        ++ (String.fromInt timeRemaining.minutes |> String.padLeft 2 '0')
-        ++ ":"
-        ++ (String.fromInt timeRemaining.seconds |> String.padLeft 2 '0')
+    String.join ":"
+        [ String.fromInt timeRemaining.hours |> String.padLeft 2 '0'
+        , String.fromInt timeRemaining.minutes |> String.padLeft 2 '0'
+        , String.fromInt timeRemaining.seconds |> String.padLeft 2 '0'
+        ]
 
 
 formatTimerName : String -> String
@@ -268,26 +229,26 @@ formatTimerName name =
 
 
 timerStatusString : Timer -> String
-timerStatusString timer =
-    case timer.status of
+timerStatusString { status, name } =
+    case status of
         NotStarted ->
             ""
 
         Ticking secondsRemaining ->
-            parseRemaining secondsRemaining |> toString
+            secondsRemaining |> parseRemaining |> toString
 
         Stopped secondsRemaining ->
-            parseRemaining secondsRemaining |> toString
+            secondsRemaining |> parseRemaining |> toString
 
         Complete ->
-            timer.name |> formatTimerName |> flip String.append " Timer Complete"
+            name |> formatTimerName |> flip String.append " Timer Complete"
 
 
 viewControls : ID -> Timer -> Html Msg
-viewControls id timer =
-    case timer.status of
+viewControls id { seconds, status } =
+    case status of
         NotStarted ->
-            case String.toInt timer.seconds of
+            case String.toInt seconds of
                 Nothing ->
                     text ""
 
@@ -305,8 +266,8 @@ viewControls id timer =
 
 
 viewResetButton : ID -> Timer -> Html Msg
-viewResetButton id timer =
-    case timer.status of
+viewResetButton id { status } =
+    case status of
         NotStarted ->
             text ""
 
@@ -345,9 +306,9 @@ viewTimer ( id, timer ) =
 
 
 view : Model -> Html Msg
-view model =
+view { timers } =
     div [ class "container" ]
-        [ div [ class "timers" ] (List.map viewTimer model.timers)
+        [ div [ class "timers" ] (timers |> Dict.toList |> List.sortBy Tuple.first |> List.map viewTimer)
         , button
             [ class "circle"
             , class "plus"
