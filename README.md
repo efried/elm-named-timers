@@ -4,7 +4,7 @@ ___
 Try it out [here](https://competent-poincare-a107d2.netlify.app/)
 
 Create multiple timers with names to help keep track. 
-![Timers preview](./static/images/timers_preview.png)
+![Timers preview](./docs/timers_preview.png)
 ___
 ### Getting Started
 ```yarn dlx elm-live src/Main.elm --hot -- --output=elm.js```
