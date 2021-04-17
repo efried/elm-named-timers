@@ -2,7 +2,7 @@
   "private": true,
   "name": "elm-named-timers",
   "scripts": {
-    "build": "mkdir -p dist; mkdir -p dist/static/css; npx --no-install elm-tooling install; npx --no-install elm make src/Main.elm --optimize --output=dist/elm.js; cp index.html dist && cp static/css/styles.css dist/static/css",
+    "build": "mkdir -p dist; npx --no-install elm-tooling install; npx --no-install elm make src/Main.elm --optimize --output=dist/elm.js; cp index.html dist",
     "commit": "commit",
     "validate": "elm-tooling validate",
     "postinstall": "husky install"
