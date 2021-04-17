@@ -1,18 +1,19 @@
-module Main exposing (Model, Msg(..), main)
+module Main exposing (ID, Model, Msg(..), Timer, TimerStatus, main)
 
 import Browser
+import Color
 import Dict exposing (Dict)
-import Element exposing (..)
+import Element
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
 import Flip exposing (flip)
+import Font as Text
 import Html exposing (Html)
 import Html.Attributes exposing (id)
 import Time
-import UI exposing (color, size)
 import Util exposing (done)
 
 
@@ -69,7 +70,7 @@ init _ =
 
 type Msg
     = InsertTimer
-    | Tick Time.Posix
+    | Tick
     | EnteredName ID String
     | EnteredSeconds ID String
     | TimerStarted ID
@@ -93,8 +94,9 @@ update msg model =
                     , nextID = model.nextID + 1
                 }
 
-        Tick _ ->
+        Tick ->
             let
+                updateTimer : Timer -> Timer
                 updateTimer =
                     \timer ->
                         case timer.status of
@@ -114,7 +116,7 @@ update msg model =
                             Complete ->
                                 timer
             in
-            done { model | timers = model.timers |> Dict.map (always updateTimer) }
+            done { model | timers = model.timers |> Dict.map (\_ -> updateTimer) }
 
         EnteredName id name ->
             done
@@ -189,7 +191,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Time.every 1000 Tick
+    Time.every 1000 (\_ -> Tick)
 
 
 
@@ -214,28 +216,28 @@ parseRemaining secondsRemaining =
     }
 
 
-controlButton : Msg -> String -> Element Msg
+controlButton : Msg -> String -> Element.Element Msg
 controlButton msg buttonText =
     Input.button
-        [ padding 6
-        , Border.color color.darkBlue
+        [ Element.padding 6
+        , Border.color Color.darkBlue
         , Border.width 2
         , Border.rounded 6
-        , Background.color color.white
-        , mouseDown [ Font.color color.mediumBlue ]
+        , Background.color Color.white
+        , Element.mouseDown [ Font.color Color.mediumBlue ]
         ]
         { onPress = Just msg
-        , label = text buttonText
+        , label = Element.text buttonText
         }
 
 
-viewControls : ID -> Timer -> Element Msg
+viewControls : ID -> Timer -> Element.Element Msg
 viewControls id { seconds, status } =
     case status of
         NotStarted ->
             case String.toInt seconds of
                 Nothing ->
-                    text ""
+                    Element.text ""
 
                 Just _ ->
                     controlButton (TimerStarted id) "Start"
@@ -247,39 +249,39 @@ viewControls id { seconds, status } =
             controlButton (TimerStarted id) "Resume"
 
         _ ->
-            none
+            Element.none
 
 
-viewResetButton : ID -> Timer -> Element Msg
+viewResetButton : ID -> Timer -> Element.Element Msg
 viewResetButton id { status } =
     case status of
         NotStarted ->
-            none
+            Element.none
 
         _ ->
             controlButton (TimerReset id) "Reset"
 
 
-viewRemoveTimerButton : ID -> Element Msg
+viewRemoveTimerButton : ID -> Element.Element Msg
 viewRemoveTimerButton id =
-    el
-        [ alignRight
+    Element.el
+        [ Element.alignRight
         ]
         (Input.button
-            [ padding 6
-            , width <| px 36
-            , height fill
+            [ Element.padding 6
+            , Element.width <| Element.px 36
+            , Element.height Element.fill
             , Font.center
-            , mouseDown
-                [ Font.color color.red
+            , Element.mouseDown
+                [ Font.color Color.red
                 ]
-            , mouseOver
-                [ Font.color color.red
+            , Element.mouseOver
+                [ Font.color Color.red
                 ]
             , Region.description "Delete Timer"
             ]
             { onPress = RemoveTimer id |> Just
-            , label = text "✕"
+            , label = Element.text "✕"
             }
         )
 
@@ -320,92 +322,92 @@ timerStatusString { status, name } =
             name |> formatTimerName |> flip String.append " Timer Complete"
 
 
-viewStatus : Timer -> Element Msg
+viewStatus : Timer -> Element.Element Msg
 viewStatus timer =
-    el
+    Element.el
         [ Font.size <|
             if timer.status == Complete then
-                size.large
+                Text.large
 
             else
-                size.xlarge
-        , Font.color color.white
-        , width fill
+                Text.xlarge
+        , Font.color Color.white
+        , Element.width Element.fill
         ]
     <|
-        text <|
+        Element.text <|
             timerStatusString <|
                 timer
 
 
-viewTimers : Dict ID Timer -> Element Msg
+viewTimers : Dict ID Timer -> Element.Element Msg
 viewTimers timers =
     timers
         |> Dict.toList
         |> List.sortBy Tuple.first
         |> List.map viewTimer
-        |> column
-            [ width fill
-            , paddingXY 0 20
-            , spacingXY 0 20
+        |> Element.column
+            [ Element.width Element.fill
+            , Element.paddingXY 0 20
+            , Element.spacingXY 0 20
             ]
 
 
-viewTimer : ( ID, Timer ) -> Element Msg
+viewTimer : ( ID, Timer ) -> Element.Element Msg
 viewTimer ( id, timer ) =
-    column
+    Element.column
         [ Background.color <|
             if timer.status == Complete then
-                color.green
+                Color.green
 
             else
-                color.grey
+                Color.gray
         , Border.rounded 20
-        , centerX
-        , alignTop
-        , width <| px 800
-        , height <| px 200
-        , padding 20
+        , Element.centerX
+        , Element.alignTop
+        , Element.width <| Element.px 800
+        , Element.height <| Element.px 200
+        , Element.padding 20
         ]
-        [ row
-            [ spacing 4
-            , width fill
-            , height <| px 36
+        [ Element.row
+            [ Element.spacing 4
+            , Element.width Element.fill
+            , Element.height <| Element.px 36
             ]
             [ Input.text
-                [ alignLeft
-                , width <| maximum 200 fill
-                , padding 6
+                [ Element.alignLeft
+                , Element.width <| Element.maximum 200 Element.fill
+                , Element.padding 6
                 , Border.rounded 6
-                , Border.color color.darkBlue
+                , Border.color Color.darkBlue
                 , Border.width 2
                 ]
                 { onChange = EnteredName id
                 , text = timer.name
-                , placeholder = text "Name" |> Input.placeholder [] |> Just
+                , placeholder = Element.text "Name" |> Input.placeholder [] |> Just
                 , label = Input.labelHidden "Timer Name"
                 }
             , Input.text
-                [ alignLeft
-                , width <| maximum 200 fill
-                , padding 6
+                [ Element.alignLeft
+                , Element.width <| Element.maximum 200 Element.fill
+                , Element.padding 6
                 , Border.rounded 6
-                , Border.color color.darkBlue
+                , Border.color Color.darkBlue
                 , Border.width 2
                 ]
                 { onChange = EnteredSeconds id
                 , text = timer.seconds
-                , placeholder = text "Seconds" |> Input.placeholder [] |> Just
+                , placeholder = Element.text "Seconds" |> Input.placeholder [] |> Just
                 , label = Input.labelHidden "Timer Seconds"
                 }
             , viewControls id timer
             , viewResetButton id timer
             , viewRemoveTimerButton id
             ]
-        , row
-            [ height fill
-            , alignLeft
-            , centerY
+        , Element.row
+            [ Element.height Element.fill
+            , Element.alignLeft
+            , Element.centerY
             ]
             [ viewStatus timer ]
         ]
@@ -413,37 +415,37 @@ viewTimer ( id, timer ) =
 
 view : Model -> Html Msg
 view { timers } =
-    layout
-        [ width fill
-        , height fill
-        , Background.color color.darkBlue
-        , Font.color color.darkBlue
+    Element.layout
+        [ Element.width Element.fill
+        , Element.height Element.fill
+        , Background.color Color.darkBlue
+        , Font.color Color.darkBlue
         ]
     <|
-        column [ width fill ]
+        Element.column [ Element.width Element.fill ]
             [ viewTimers timers
-            , el
-                [ centerX
-                , paddingEach { bottom = 20, left = 0, right = 0, top = 0 }
+            , Element.el
+                [ Element.centerX
+                , Element.paddingEach { bottom = 20, left = 0, right = 0, top = 0 }
                 ]
                 (Input.button
-                    [ padding 6
-                    , width <| px 36
-                    , height fill
-                    , centerY
+                    [ Element.padding 6
+                    , Element.width <| Element.px 36
+                    , Element.height Element.fill
+                    , Element.centerY
                     , Font.center
-                    , Font.color color.green
-                    , Font.size size.large
-                    , mouseDown
-                        [ Font.color color.white
+                    , Font.color Color.green
+                    , Font.size Text.large
+                    , Element.mouseDown
+                        [ Font.color Color.white
                         ]
-                    , mouseOver
-                        [ Font.color color.white
+                    , Element.mouseOver
+                        [ Font.color Color.white
                         ]
                     , Region.description "Insert Timer"
                     ]
                     { onPress = InsertTimer |> Just
-                    , label = 0x2B |> Char.fromCode |> String.fromChar |> text
+                    , label = 0x2B |> Char.fromCode |> String.fromChar |> Element.text
                     }
                 )
             ]
