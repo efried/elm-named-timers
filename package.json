@@ -2,11 +2,11 @@
   "private": true,
   "name": "elm-named-timers",
   "scripts": {
-    "build": "mkdir -p dist; npx --no-install elm-tooling install; yarn run validate; npx --no-install elm make src/Main.elm --optimize --output=dist/elm.js; cp index.html dist",
+    "build": "mkdir -p dist; npx --no-install elm-tooling install; npx --no-install elm make src/Main.elm --optimize --output=dist/elm.js; cp index.html dist",
     "commit": "commit",
     "review": "elm-review",
     "review:fix": "elm-review --fix",
-    "validate": "elm-tooling validate; yarn run review",
+    "validate": "elm-tooling validate;",
     "postinstall": "husky install"
   },
   "devDependencies": {
