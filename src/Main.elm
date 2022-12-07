@@ -1,4 +1,4 @@
-module Main exposing (ID, Model, Msg(..), Timer, TimerStatus, main)
+port module Main exposing (ID, Model, Msg(..), Timer, TimerStatus, main)
 
 import Browser
 import Color
@@ -32,6 +32,13 @@ main =
 
 
 
+-- PORTS
+
+
+port speakText : String -> Cmd msg
+
+
+
 -- MODEL
 
 
@@ -46,6 +53,7 @@ type alias Timer =
     { seconds : String
     , name : String
     , status : TimerStatus
+    , sound : Bool
     }
 
 
@@ -59,9 +67,14 @@ type alias ID =
     Int
 
 
+newTimer : Timer
+newTimer =
+    Timer "" "" NotStarted False
+
+
 init : () -> ( Model, Cmd Msg )
 init _ =
-    done { timers = Dict.fromList [ ( 0, Timer "" "" NotStarted ) ], nextID = 1 }
+    done { timers = Dict.fromList [ ( 0, newTimer ) ], nextID = 1 }
 
 
 
@@ -77,6 +90,7 @@ type Msg
     | TimerStopped ID
     | TimerReset ID
     | RemoveTimer ID
+    | ToggleSound ID Bool
 
 
 mapTimer : Model -> ID -> (Timer -> Timer) -> Model
@@ -90,33 +104,47 @@ update msg model =
         InsertTimer ->
             done
                 { model
-                    | timers = model.timers |> Dict.insert model.nextID (Timer "" "" NotStarted)
+                    | timers = model.timers |> Dict.insert model.nextID newTimer
                     , nextID = model.nextID + 1
                 }
 
         Tick ->
             let
                 updateTimer : Timer -> Timer
-                updateTimer =
-                    \timer ->
-                        case timer.status of
-                            Ticking secondsRemaining ->
-                                if secondsRemaining - 1 <= 0 then
-                                    { timer | status = Complete }
+                updateTimer timer =
+                    case timer.status of
+                        Ticking secondsRemaining ->
+                            if secondsRemaining - 1 <= 0 then
+                                { timer | status = Complete }
 
-                                else
-                                    { timer | status = Ticking (secondsRemaining - 1) }
+                            else
+                                { timer | status = Ticking (secondsRemaining - 1) }
 
-                            NotStarted ->
-                                timer
+                        NotStarted ->
+                            timer
 
-                            Stopped _ ->
-                                timer
+                        Stopped _ ->
+                            timer
 
-                            Complete ->
-                                timer
+                        Complete ->
+                            timer
+
+                processTimer : Timer -> Cmd msg
+                processTimer timer =
+                    case timer.status of
+                        Ticking secondsRemaining ->
+                            if secondsRemaining - 1 <= 0 && timer.sound then
+                                speakText (timer.name ++ " timer complete")
+
+                            else
+                                Cmd.none
+
+                        _ ->
+                            Cmd.none
             in
-            done { model | timers = model.timers |> Dict.map (\_ -> updateTimer) }
+            ( { model | timers = model.timers |> Dict.map (\_ -> updateTimer) }
+            , Cmd.batch (Dict.values model.timers |> List.map processTimer)
+            )
 
         EnteredName id name ->
             done
@@ -183,6 +211,15 @@ update msg model =
 
         RemoveTimer id ->
             done { model | timers = model.timers |> Dict.remove id }
+
+        ToggleSound id sound ->
+            done
+                (mapTimer model
+                    id
+                    (\timer ->
+                        { timer | sound = sound }
+                    )
+                )
 
 
 
@@ -260,6 +297,18 @@ viewResetButton id { status } =
 
         _ ->
             controlButton (TimerReset id) "Reset"
+
+
+viewToggleSoundButton : ID -> Timer -> Element.Element Msg
+viewToggleSoundButton id { sound } =
+    Input.checkbox []
+        { onChange = ToggleSound id
+        , icon = Input.defaultCheckbox
+        , checked = sound
+        , label =
+            Input.labelRight []
+                (Element.text "Sound?")
+        }
 
 
 viewRemoveTimerButton : ID -> Element.Element Msg
@@ -402,6 +451,7 @@ viewTimer ( id, timer ) =
                 }
             , viewControls id timer
             , viewResetButton id timer
+            , viewToggleSoundButton id timer
             , viewRemoveTimerButton id
             ]
         , Element.row
