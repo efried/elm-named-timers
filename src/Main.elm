@@ -13,6 +13,7 @@ import Flip exposing (flip)
 import Font as Text
 import Html exposing (Html)
 import Html.Attributes exposing (id)
+import Icons
 import Time
 import Util exposing (done)
 
@@ -301,13 +302,18 @@ viewResetButton id { status } =
 
 viewToggleSoundButton : ID -> Timer -> Element.Element Msg
 viewToggleSoundButton id { sound } =
-    Input.checkbox []
+    Input.checkbox [ Font.color Color.white ]
         { onChange = ToggleSound id
-        , icon = Input.defaultCheckbox
+        , icon =
+            \soundEnabled ->
+                if soundEnabled then
+                    Icons.bell
+
+                else
+                    Icons.bellOff
         , checked = sound
         , label =
-            Input.labelRight []
-                (Element.text "Sound?")
+            Input.labelHidden "Alert when done"
         }
 
 
