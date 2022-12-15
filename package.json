@@ -2,7 +2,7 @@
   "private": true,
   "name": "elm-named-timers",
   "scripts": {
-    "build": "mkdir -p dist; npx --no-install elm-tooling install; npx --no-install elm make src/Main.elm --optimize --output=dist/elm.js; ./optimize.sh src/Main.elm; sed 's/elm.js/elm.min.js/g' index.html > dist/index.html;",
+    "build": "mkdir -p dist; npx --no-install elm-tooling install; ./optimize.sh src/Main.elm; sed 's/elm.js/elm.min.js/g' index.html > dist/index.html;",
     "commit": "commit",
     "review": "elm-review",
     "review:fix": "elm-review --fix",
@@ -16,5 +16,6 @@
     "elm-review": "^2.5.0",
     "elm-tooling": "^1.3.0",
     "husky": "^6.0.0"
-  }
+  },
+  "packageManager": "yarn@3.3.0"
 }
