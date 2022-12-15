@@ -6,8 +6,6 @@
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
-.yarn/unplugged
-.yarn/build-state.yml
 
 # NPM
 node_modules/*
