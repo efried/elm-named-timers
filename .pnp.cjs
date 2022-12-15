@@ -33,7 +33,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@commitlint/prompt-cli", "npm:12.1.4"],\
             ["elm-review", "npm:2.8.5"],\
             ["elm-tooling", "npm:1.10.0"],\
-            ["husky", "npm:6.0.0"]\
+            ["husky", "npm:6.0.0"],\
+            ["uglify-js", "npm:3.17.4"]\
           ],\
           "linkType": "SOFT"\
         }]\
@@ -1181,7 +1182,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@commitlint/prompt-cli", "npm:12.1.4"],\
             ["elm-review", "npm:2.8.5"],\
             ["elm-tooling", "npm:1.10.0"],\
-            ["husky", "npm:6.0.0"]\
+            ["husky", "npm:6.0.0"],\
+            ["uglify-js", "npm:3.17.4"]\
           ],\
           "linkType": "SOFT"\
         }]\
@@ -3464,6 +3466,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/type-fest-npm-0.8.1-351ad028fe-d61c4b2eba.zip/node_modules/type-fest/",\
           "packageDependencies": [\
             ["type-fest", "npm:0.8.1"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["uglify-js", [\
+        ["npm:3.17.4", {\
+          "packageLocation": "./.yarn/cache/uglify-js-npm-3.17.4-58d4ab56aa-7b3897df38.zip/node_modules/uglify-js/",\
+          "packageDependencies": [\
+            ["uglify-js", "npm:3.17.4"]\
           ],\
           "linkType": "HARD"\
         }]\
