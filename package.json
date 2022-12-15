@@ -2,13 +2,13 @@
   "private": true,
   "name": "elm-named-timers",
   "scripts": {
-    "build": "mkdir -p dist; npx --no-install elm-tooling install; npx --no-install elm make src/Main.elm --optimize --output=elm.js; yarn run uglify; sed 's/elm.js/elm.min.js/g' index.html > dist/index.html;",
+    "build": "mkdir -p dist; npx --no-install elm-tooling install; npx --no-install elm make src/Main.elm --optimize --output=elm.js; yarn run uglify; cp index.html dist;",
     "commit": "commit",
     "review": "elm-review",
     "review:fix": "elm-review --fix",
     "validate": "elm-tooling validate;",
     "postinstall": "husky install",
-    "uglify": "uglifyjs elm.js --compress 'pure_funcs=[F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9],pure_getters,keep_fargs=false,unsafe_comps,unsafe' | uglifyjs --mangle --output dist/elm.min.js"
+    "uglify": "uglifyjs elm.js --compress 'pure_funcs=[F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9],pure_getters,keep_fargs=false,unsafe_comps,unsafe' | uglifyjs --mangle --output dist/elm.js"
   },
   "devDependencies": {
     "@commitlint/cli": "^12.0.1",
