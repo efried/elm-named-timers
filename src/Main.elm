@@ -1,7 +1,6 @@
-port module Main exposing (ID, Model, Msg(..), Timer, TimerStatus, main)
+port module Main exposing (Model, Msg(..), Timer, TimerStatus, main)
 
 import Browser
-import Dict exposing (Dict)
 import Element
 import Element.Background as Background
 import Element.Border as Border
@@ -49,7 +48,8 @@ type TimerStatus
 
 
 type alias Timer =
-    { seconds : String
+    { uid : Int
+    , seconds : String
     , name : String
     , status : TimerStatus
     , sound : Bool
@@ -57,23 +57,24 @@ type alias Timer =
 
 
 type alias Model =
-    { timers : Dict ID Timer
-    , nextID : Int
+    { timers : List Timer
+    , uid : Int
     }
 
 
-type alias ID =
-    Int
-
-
-newTimer : Timer
-newTimer =
-    Timer "" "" NotStarted False
+newTimer : Int -> Timer
+newTimer id =
+    { uid = id
+    , seconds = ""
+    , name = ""
+    , status = NotStarted
+    , sound = False
+    }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    done { timers = Dict.fromList [ ( 0, newTimer ) ], nextID = 1 }
+    done { timers = [ newTimer 0 ], uid = 1 }
 
 
 
@@ -83,18 +84,13 @@ init _ =
 type Msg
     = InsertTimer
     | Tick
-    | EnteredName ID String
-    | EnteredSeconds ID String
-    | TimerStarted ID
-    | TimerStopped ID
-    | TimerReset ID
-    | RemoveTimer ID
-    | ToggleSound ID Bool
-
-
-mapTimer : Model -> ID -> (Timer -> Timer) -> Model
-mapTimer model id f =
-    { model | timers = model.timers |> Dict.update id (Maybe.map f) }
+    | EnteredName Int String
+    | EnteredSeconds Int String
+    | TimerStarted Int
+    | TimerStopped Int
+    | TimerReset Int
+    | RemoveTimer Int
+    | ToggleSound Int Bool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -103,8 +99,8 @@ update msg model =
         InsertTimer ->
             done
                 { model
-                    | timers = model.timers |> Dict.insert model.nextID newTimer
-                    , nextID = model.nextID + 1
+                    | timers = model.timers ++ [ newTimer model.uid ]
+                    , uid = model.uid + 1
                 }
 
         Tick ->
@@ -141,33 +137,38 @@ update msg model =
                         _ ->
                             Cmd.none
             in
-            ( { model | timers = model.timers |> Dict.map (\_ -> updateTimer) }
-            , Cmd.batch (Dict.values model.timers |> List.map processTimer)
+            ( { model | timers = List.map updateTimer model.timers }
+            , Cmd.batch (List.map processTimer model.timers)
             )
 
         EnteredName id name ->
-            done
-                (mapTimer model
-                    id
-                    (\timer ->
+            let
+                updateName timer =
+                    if timer.uid == id then
                         { timer | name = name }
-                    )
-                )
+
+                    else
+                        timer
+            in
+            done
+                { model | timers = List.map updateName model.timers }
 
         EnteredSeconds id seconds ->
-            done
-                (mapTimer model
-                    id
-                    (\timer ->
+            let
+                updateSeconds timer =
+                    if timer.uid == id then
                         { timer | seconds = seconds }
-                    )
-                )
+
+                    else
+                        timer
+            in
+            done
+                { model | timers = List.map updateSeconds model.timers }
 
         TimerStarted id ->
-            done
-                (mapTimer model
-                    id
-                    (\timer ->
+            let
+                startTimer timer =
+                    if timer.uid == id then
                         case timer.status of
                             NotStarted ->
                                 case String.toInt timer.seconds of
@@ -182,43 +183,56 @@ update msg model =
 
                             _ ->
                                 timer
-                    )
-                )
+
+                    else
+                        timer
+            in
+            done
+                { model | timers = List.map startTimer model.timers }
 
         TimerStopped id ->
-            done
-                (mapTimer model
-                    id
-                    (\timer ->
+            let
+                stopTimer timer =
+                    if timer.uid == id then
                         case timer.status of
                             Ticking secondsRemaining ->
                                 { timer | status = Stopped secondsRemaining }
 
                             _ ->
                                 timer
-                    )
-                )
+
+                    else
+                        timer
+            in
+            done
+                { model | timers = List.map stopTimer model.timers }
 
         TimerReset id ->
-            done
-                (mapTimer model
-                    id
-                    (\timer ->
+            let
+                resetTimer timer =
+                    if timer.uid == id then
                         { timer | status = NotStarted }
-                    )
-                )
+
+                    else
+                        timer
+            in
+            done
+                { model | timers = List.map resetTimer model.timers }
 
         RemoveTimer id ->
-            done { model | timers = model.timers |> Dict.remove id }
+            done { model | timers = List.filter (\timer -> timer.uid /= id) model.timers }
 
         ToggleSound id sound ->
-            done
-                (mapTimer model
-                    id
-                    (\timer ->
+            let
+                toggleTimerSound timer =
+                    if timer.uid == id then
                         { timer | sound = sound }
-                    )
-                )
+
+                    else
+                        timer
+            in
+            done
+                { model | timers = List.map toggleTimerSound model.timers }
 
 
 
@@ -267,41 +281,41 @@ controlButton msg buttonText =
         }
 
 
-viewControls : ID -> Timer -> Element.Element Msg
-viewControls id { seconds, status } =
-    case status of
+viewControls : Timer -> Element.Element Msg
+viewControls timer =
+    case timer.status of
         NotStarted ->
-            case String.toInt seconds of
+            case String.toInt timer.seconds of
                 Nothing ->
                     Element.text ""
 
                 Just _ ->
-                    controlButton (TimerStarted id) "Start"
+                    controlButton (TimerStarted timer.uid) "Start"
 
         Ticking _ ->
-            controlButton (TimerStopped id) "Pause"
+            controlButton (TimerStopped timer.uid) "Pause"
 
         Stopped _ ->
-            controlButton (TimerStarted id) "Resume"
+            controlButton (TimerStarted timer.uid) "Resume"
 
         _ ->
             Element.none
 
 
-viewResetButton : ID -> Timer -> Element.Element Msg
-viewResetButton id { status } =
-    case status of
+viewResetButton : Timer -> Element.Element Msg
+viewResetButton timer =
+    case timer.status of
         NotStarted ->
             Element.none
 
         _ ->
-            controlButton (TimerReset id) "Reset"
+            controlButton (TimerReset timer.uid) "Reset"
 
 
-viewToggleSoundButton : ID -> Timer -> Element.Element Msg
-viewToggleSoundButton id { sound } =
+viewToggleSoundButton : Timer -> Element.Element Msg
+viewToggleSoundButton timer =
     Input.checkbox [ Font.color white ]
-        { onChange = ToggleSound id
+        { onChange = ToggleSound timer.uid
         , icon =
             \soundEnabled ->
                 if soundEnabled then
@@ -309,14 +323,14 @@ viewToggleSoundButton id { sound } =
 
                 else
                     Icons.bellOff
-        , checked = sound
+        , checked = timer.sound
         , label =
             Input.labelHidden "Alert when done"
         }
 
 
-viewRemoveTimerButton : ID -> Element.Element Msg
-viewRemoveTimerButton id =
+viewRemoveTimerButton : Timer -> Element.Element Msg
+viewRemoveTimerButton { uid } =
     Element.el
         [ Element.alignRight
         ]
@@ -333,7 +347,7 @@ viewRemoveTimerButton id =
                 ]
             , Region.description "Delete Timer"
             ]
-            { onPress = RemoveTimer id |> Just
+            { onPress = RemoveTimer uid |> Just
             , label = Element.text "✕"
             }
         )
@@ -393,12 +407,9 @@ viewStatus timer =
                 timer
 
 
-viewTimers : Dict ID Timer -> Element.Element Msg
+viewTimers : List Timer -> Element.Element Msg
 viewTimers timers =
-    timers
-        |> Dict.toList
-        |> List.sortBy Tuple.first
-        |> List.map viewTimer
+    List.map viewTimer timers
         |> Element.column
             [ Element.width Element.fill
             , Element.paddingXY 0 20
@@ -406,8 +417,8 @@ viewTimers timers =
             ]
 
 
-viewTimer : ( ID, Timer ) -> Element.Element Msg
-viewTimer ( id, timer ) =
+viewTimer : Timer -> Element.Element Msg
+viewTimer timer =
     Element.column
         [ Background.color <|
             if timer.status == Complete then
@@ -435,7 +446,7 @@ viewTimer ( id, timer ) =
                 , Border.color darkBlue
                 , Border.width 2
                 ]
-                { onChange = EnteredName id
+                { onChange = EnteredName timer.uid
                 , text = timer.name
                 , placeholder = Element.text "Name" |> Input.placeholder [] |> Just
                 , label = Input.labelHidden "Timer Name"
@@ -448,15 +459,15 @@ viewTimer ( id, timer ) =
                 , Border.color darkBlue
                 , Border.width 2
                 ]
-                { onChange = EnteredSeconds id
+                { onChange = EnteredSeconds timer.uid
                 , text = timer.seconds
                 , placeholder = Element.text "Seconds" |> Input.placeholder [] |> Just
                 , label = Input.labelHidden "Timer Seconds"
                 }
-            , viewControls id timer
-            , viewResetButton id timer
-            , viewToggleSoundButton id timer
-            , viewRemoveTimerButton id
+            , viewControls timer
+            , viewResetButton timer
+            , viewToggleSoundButton timer
+            , viewRemoveTimerButton timer
             ]
         , Element.row
             [ Element.height Element.fill
@@ -503,6 +514,7 @@ view { timers } =
                     }
                 )
             ]
+
 
 
 -- COLORS
