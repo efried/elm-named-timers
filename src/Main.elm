@@ -1,7 +1,6 @@
 port module Main exposing (ID, Model, Msg(..), Timer, TimerStatus, main)
 
 import Browser
-import Color
 import Dict exposing (Dict)
 import Element
 import Element.Background as Background
@@ -10,7 +9,6 @@ import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
 import Flip exposing (flip)
-import Font as Text
 import Html exposing (Html)
 import Html.Attributes exposing (id)
 import Icons
@@ -258,11 +256,11 @@ controlButton : Msg -> String -> Element.Element Msg
 controlButton msg buttonText =
     Input.button
         [ Element.padding 6
-        , Border.color Color.darkBlue
+        , Border.color darkBlue
         , Border.width 2
         , Border.rounded 6
-        , Background.color Color.white
-        , Element.mouseDown [ Font.color Color.mediumBlue ]
+        , Background.color white
+        , Element.mouseDown [ Font.color mediumBlue ]
         ]
         { onPress = Just msg
         , label = Element.text buttonText
@@ -302,7 +300,7 @@ viewResetButton id { status } =
 
 viewToggleSoundButton : ID -> Timer -> Element.Element Msg
 viewToggleSoundButton id { sound } =
-    Input.checkbox [ Font.color Color.white ]
+    Input.checkbox [ Font.color white ]
         { onChange = ToggleSound id
         , icon =
             \soundEnabled ->
@@ -328,10 +326,10 @@ viewRemoveTimerButton id =
             , Element.height Element.fill
             , Font.center
             , Element.mouseDown
-                [ Font.color Color.red
+                [ Font.color red
                 ]
             , Element.mouseOver
-                [ Font.color Color.red
+                [ Font.color red
                 ]
             , Region.description "Delete Timer"
             ]
@@ -382,11 +380,11 @@ viewStatus timer =
     Element.el
         [ Font.size <|
             if timer.status == Complete then
-                Text.large
+                32
 
             else
-                Text.xlarge
-        , Font.color Color.white
+                64
+        , Font.color white
         , Element.width Element.fill
         ]
     <|
@@ -413,10 +411,10 @@ viewTimer ( id, timer ) =
     Element.column
         [ Background.color <|
             if timer.status == Complete then
-                Color.green
+                green
 
             else
-                Color.gray
+                gray
         , Border.rounded 20
         , Element.centerX
         , Element.alignTop
@@ -434,7 +432,7 @@ viewTimer ( id, timer ) =
                 , Element.width <| Element.maximum 200 Element.fill
                 , Element.padding 6
                 , Border.rounded 6
-                , Border.color Color.darkBlue
+                , Border.color darkBlue
                 , Border.width 2
                 ]
                 { onChange = EnteredName id
@@ -447,7 +445,7 @@ viewTimer ( id, timer ) =
                 , Element.width <| Element.maximum 200 Element.fill
                 , Element.padding 6
                 , Border.rounded 6
-                , Border.color Color.darkBlue
+                , Border.color darkBlue
                 , Border.width 2
                 ]
                 { onChange = EnteredSeconds id
@@ -474,8 +472,8 @@ view { timers } =
     Element.layout
         [ Element.width Element.fill
         , Element.height Element.fill
-        , Background.color Color.darkBlue
-        , Font.color Color.darkBlue
+        , Background.color darkBlue
+        , Font.color darkBlue
         ]
     <|
         Element.column [ Element.width Element.fill ]
@@ -490,13 +488,13 @@ view { timers } =
                     , Element.height Element.fill
                     , Element.centerY
                     , Font.center
-                    , Font.color Color.green
-                    , Font.size Text.large
+                    , Font.color green
+                    , Font.size 32
                     , Element.mouseDown
-                        [ Font.color Color.white
+                        [ Font.color white
                         ]
                     , Element.mouseOver
-                        [ Font.color Color.white
+                        [ Font.color white
                         ]
                     , Region.description "Insert Timer"
                     ]
@@ -505,3 +503,36 @@ view { timers } =
                     }
                 )
             ]
+
+
+-- COLORS
+
+
+darkBlue : Element.Color
+darkBlue =
+    Element.rgb255 1 23 47
+
+
+mediumBlue : Element.Color
+mediumBlue =
+    Element.rgb255 21 59 80
+
+
+green : Element.Color
+green =
+    Element.rgb255 62 168 62
+
+
+gray : Element.Color
+gray =
+    Element.rgb255 130 138 149
+
+
+white : Element.Color
+white =
+    Element.rgb255 255 255 255
+
+
+red : Element.Color
+red =
+    Element.rgba255 230 15 15 0.596
