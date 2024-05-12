@@ -9,7 +9,7 @@ import Element.Input as Input
 import Element.Region as Region
 import Flip exposing (flip)
 import Html exposing (Html)
-import Html.Attributes exposing (id)
+import Html.Attributes exposing (id, style)
 import Icons
 import Time
 import Util exposing (done)
@@ -314,7 +314,7 @@ viewResetButton timer =
 
 viewToggleSoundButton : Timer -> Element.Element Msg
 viewToggleSoundButton timer =
-    Input.checkbox [ Font.color white ]
+    Input.checkbox [ Font.color white, Element.paddingXY 8 0 ]
         { onChange = ToggleSound timer.uid
         , icon =
             \soundEnabled ->
@@ -339,6 +339,7 @@ viewRemoveTimerButton { uid } =
             , Element.width <| Element.px 36
             , Element.height Element.fill
             , Font.center
+            , Font.color white
             , Element.mouseDown
                 [ Font.color red
                 ]
@@ -420,13 +421,24 @@ viewTimers timers =
 viewTimer : Timer -> Element.Element Msg
 viewTimer timer =
     Element.column
-        [ Background.color <|
-            if timer.status == Complete then
-                green
+        [ Background.gradient <|
+            { angle = degrees 315
+            , steps =
+                if timer.status == Complete then
+                    [ Element.rgb255 27 255 88, green ]
 
-            else
-                gray
-        , Border.rounded 20
+                else
+                    [ black ]
+            }
+        , Element.htmlAttribute <|
+            Html.Attributes.style "border-image" <|
+                case timer.status of
+                    Stopped _ ->
+                        "linear-gradient(315deg, rgb(242,252,128), rgb(226,245,0)) 2"
+
+                    _ ->
+                        "linear-gradient(315deg, rgb(27,255,88), rgb(4,199,49)) 2"
+        , Border.width 4
         , Element.centerX
         , Element.alignTop
         , Element.width <| Element.px 800
@@ -483,7 +495,7 @@ view { timers } =
     Element.layout
         [ Element.width Element.fill
         , Element.height Element.fill
-        , Background.color darkBlue
+        , Background.color black
         , Font.color darkBlue
         ]
     <|
@@ -532,7 +544,7 @@ mediumBlue =
 
 green : Element.Color
 green =
-    Element.rgb255 62 168 62
+    Element.rgb255 4 199 49
 
 
 gray : Element.Color
@@ -548,3 +560,8 @@ white =
 red : Element.Color
 red =
     Element.rgba255 230 15 15 0.596
+
+
+black : Element.Color
+black =
+    Element.rgb255 0 0 0
