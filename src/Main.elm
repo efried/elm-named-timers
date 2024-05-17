@@ -359,7 +359,7 @@ formatTimerName name =
     if String.length name > 15 then
         name
             |> String.left 15
-            |> flip String.append "..."
+            |> flip String.append "...."
 
     else
         name
